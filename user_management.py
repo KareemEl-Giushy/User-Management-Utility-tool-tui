@@ -168,8 +168,6 @@ class AddUserScreen(ModalScreen):
             else:
                 self.app.notify("User Added Successfully!", title="Success")
                 self.dismiss("refresh")
-                # self.app.pop_screen()
-                # self.app.screen.populate_tables()
                 return
 
 class AddGroupScreen(ModalScreen):
