@@ -90,6 +90,7 @@ class UserManagement(App):
 
 
 class ModifyEntryScreen(ModalScreen):
+    BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
     def __init__(self, fields, data):
         super().__init__()
         self.fields = fields
@@ -107,6 +108,7 @@ class ModifyEntryScreen(ModalScreen):
             self.app.pop_screen()
 
 class AddUserScreen(ModalScreen):
+    BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
     def compose(self):
         yield Label("Add User")
         with Horizontal():
@@ -118,6 +120,7 @@ class AddUserScreen(ModalScreen):
             self.app.pop_screen()
 
 class AddGroupScreen(ModalScreen):
+    BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
     def compose(self):
         yield Label("Add Group")
         with Horizontal():
