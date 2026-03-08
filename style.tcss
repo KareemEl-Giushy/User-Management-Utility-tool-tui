@@ -3,20 +3,27 @@ Screen {
     width: auto;
     height: 80%;
 }
+
 ModalScreen{
     layout: vertical;
 }
 
-
 DataTable {
     margin: 1 1;
 }
+
 .h {
     height:15vh
 }
+
 Button {
     margin: 0 5;
 }
+
 Rule {
     margin: 0;
+}
+
+.buttons-group {
+    margin: 1 0;
 }

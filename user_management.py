@@ -3,11 +3,12 @@ from rich.text import Text
 from textual.app import App
 from textual import events, on
 from textual.binding import Binding
-from textual.widgets import Button, Header, Label, Footer, DataTable, Rule
+from textual.widgets import Button, Header, Label, Footer, Input, DataTable, Rule
 from textual.containers import Horizontal, VerticalGroup
 from textual.screen import ModalScreen
 
 from utils import *
+from validators import InputeValidator
 
 class UserManagement(App):
 
@@ -110,10 +111,27 @@ class ModifyEntryScreen(ModalScreen):
 class AddUserScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
     def compose(self):
-        yield Label("Add User")
-        with Horizontal():
+        yield Label("Add User:", classes="buttons-group")
+        yield Input(placeholder="Username", validators=[
+            InputeValidator()
+        ], id="username")
+        yield Input(placeholder="Full Name", validators=[
+            InputeValidator()
+        ], id="full-name")
+        yield Input(placeholder="Password", id="pass", validators=[
+            InputeValidator(less_count=6)
+        ], password=True)
+        yield Input(placeholder="Confirm Password",id="confirm-pass", validators=[
+            InputeValidator(less_count=6)
+        ], password=True)
+        with Horizontal(classes="buttons-group"):
             yield Button("Ok!", id="ok", variant="success")
             yield Button("Cancel", id="cancel", variant="warning")
+
+    @on(Input.Changed)
+    def show_invalid_reasons(self, event: Input.Changed):
+        if not event.validation_result.is_valid:
+            self.notify(str(event.validation_result.failure_descriptions[0]), title="Not Valid", severity="error", timeout=2)
 
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "cancel":
