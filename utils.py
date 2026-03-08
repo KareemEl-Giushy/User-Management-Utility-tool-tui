@@ -49,9 +49,9 @@ def run_command(command):
     except subprocess.CalledProcessError as e:
         return False, e.stderr
 
-def add_user(username, password) -> tuple:
+def add_user(username, fullname, password) -> tuple:
     
-    success, error = run_command(["sudo", "useradd", "-m", username])
+    success, error = run_command(["sudo", "useradd", "-c", fullname, "-m", username])
     
     if success:
         proc = subprocess.Popen(['sudo', 'chpasswd'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
