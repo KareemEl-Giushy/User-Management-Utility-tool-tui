@@ -55,6 +55,16 @@ class UserManagement(App):
         utable.cursor_type = "row"
         utable.zebra_stripes = True
         utable.add_columns(*list_users()[0])
+
+        gtable = self.query_one("#groups")
+        gtable.cursor_type = "row"
+        gtable.zebra_stripes = True
+        gtable.add_columns(*list_groups()[0])
+        self.populate_tables()
+
+    def populate_tables(self, *args):
+        utable = self.query_one("#users")
+        utable.clear()
         for row in list_users()[1:]:
             styled = (
                 Text(str(cell), style="italic", justify="center") for cell in row
@@ -62,18 +72,17 @@ class UserManagement(App):
             utable.add_row(*styled)
 
         gtable = self.query_one("#groups")
-        gtable.cursor_type = "row"
-        gtable.zebra_stripes = True
-        gtable.add_columns(*list_groups()[0])
+        gtable.clear()
         for row in list_groups()[1:]:
             styled = (
                 Text(str(cell), style="italic", justify="center") for cell in row
             )
             gtable.add_row(*styled)
 
+
     @on(Button.Pressed,'#add-user')
     def add_user(self):
-        self.push_screen(AddUserScreen())
+        self.push_screen(AddUserScreen(), callback=self.populate_tables)
 
     @on(Button.Pressed,'#add-group')
     def add_group(self):
@@ -153,11 +162,15 @@ class AddUserScreen(ModalScreen):
                 return
             
             # Call the make user function
-            add_user(values[0], values[1], values[2])
-            self.app.notify("User Added Successfully!", title="Success")
-            self.app.pop_screen()
-            return
-            
+            re = add_user(values[0], values[1], values[2])
+            if re[0] == -1:
+                self.notify(re[1], severity="error")
+            else:
+                self.app.notify("User Added Successfully!", title="Success")
+                self.dismiss("refresh")
+                # self.app.pop_screen()
+                # self.app.screen.populate_tables()
+                return
 
 class AddGroupScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
