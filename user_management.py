@@ -18,10 +18,11 @@ class UserManagement(App):
     CSS_PATH = "./style.tcss"
 
     BINDINGS = [
-        Binding(key="a", action="", description="Add A New User"),
-        Binding(key="delete", action="delete", description="Delete a User/Group"),
-        Binding(key="l", action="", description="Un/Lock User"),
-        Binding(key="p", action="", description="Change password"),
+        Binding(key="a", action="add_user", description="Add A New User"),
+        Binding(key="delete", action="delete_user", description="Delete a User"),
+        Binding(key="ctrl+d", action="delete_group", description="Delete a Group"),
+        Binding(key="l", action="lock_user", description="Un/Lock User"),
+        Binding(key="p", action="change_password", description="Change password"),
         Binding(key="i", action="", description="Info"),
         Binding(key="j", action="down", description="Scroll down", show=False),
         Binding(key="q", action="quit", description="Quit the app"),
@@ -51,19 +52,19 @@ class UserManagement(App):
         yield Footer()
 
     def on_mount(self):
-        utable = self.query_one("#users")
+        utable = self.query_one("#users", DataTable)
         utable.cursor_type = "row"
         utable.zebra_stripes = True
         utable.add_columns(*list_users()[0])
 
-        gtable = self.query_one("#groups")
+        gtable = self.query_one("#groups", DataTable)
         gtable.cursor_type = "row"
         gtable.zebra_stripes = True
         gtable.add_columns(*list_groups()[0])
         self.populate_tables()
 
     def populate_tables(self, *args):
-        utable = self.query_one("#users")
+        utable = self.query_one("#users", DataTable)
         utable.clear()
         for row in list_users()[1:]:
             styled = (
@@ -71,7 +72,7 @@ class UserManagement(App):
             )
             utable.add_row(*styled)
 
-        gtable = self.query_one("#groups")
+        gtable = self.query_one("#groups", DataTable)
         gtable.clear()
         for row in list_groups()[1:]:
             styled = (
@@ -79,6 +80,46 @@ class UserManagement(App):
             )
             gtable.add_row(*styled)
 
+    def action_add_user(self):
+        self.add_user()
+
+    def action_delete_user(self):
+        utable = self.query_one("#users", DataTable)
+        row_idx = utable.cursor_row
+        if row_idx == None:
+            return
+        
+        user = utable.get_row_at(row_idx)[0]
+
+        re = delete_user(str(user))
+        if re[0] == -1:
+                self.notify(re[1], severity="error")
+        else:
+            self.notify("User Deleted Successfully!", title="Success")
+            self.populate_tables()
+            return
+
+    def action_delete_group(self):
+        gtable = self.query_one("#groups", DataTable)
+        row_idx = gtable.cursor_row
+        if row_idx == None:
+            return
+        
+        g = gtable.get_row_at(row_idx)[0]
+
+        re = delete_group(str(g))
+        if re[0] == -1:
+                self.notify(re[1], severity="error")
+        else:
+            self.notify("Group Deleted Successfully!", title="Success")
+            self.populate_tables()
+            return
+
+    def action_lock_user(self):
+        pass
+
+    def action_change_password(self):
+        pass
 
     @on(Button.Pressed,'#add-user')
     def add_user(self):

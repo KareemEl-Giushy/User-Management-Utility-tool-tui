@@ -98,16 +98,12 @@ def add_group(groupname):
         return (-1, f" Error: {error}")
 
 
-def delete_group():
-    groupname = input("Enter groupname to DELETE: ").strip()
-    confirm = input(f"Are you sure you want to delete {groupname} ? (y/n): ")
-    
-    if confirm.lower() == 'y':
+def delete_group(groupname):
         success, error = run_command(["sudo", "groupdel", groupname])
         if success:
-            print(f" group '{groupname}' deleted.")
+            return (0, groupname)
         else:
-            print(f" Error: {error}")
+            return (-1, error)
 
 
 
