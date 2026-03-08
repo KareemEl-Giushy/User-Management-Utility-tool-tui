@@ -127,7 +127,7 @@ class UserManagement(App):
 
     @on(Button.Pressed,'#add-group')
     def add_group(self):
-        self.push_screen(AddGroupScreen())
+        self.push_screen(AddGroupScreen(), callback=self.populate_tables)
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         row = event.row_key
@@ -214,14 +214,41 @@ class AddUserScreen(ModalScreen):
 class AddGroupScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
     def compose(self):
-        yield Label("Add Group")
-        with Horizontal():
+        yield Label("Add Group:", classes="buttons-group")
+        yield Input(placeholder="Group Name", validators=[
+            InputeValidator()
+        ], id="groupname")
+        with Horizontal(classes="buttons-group"):
             yield Button("Ok!", id="ok", variant="success")
             yield Button("Cancel", id="cancel", variant="warning")
+
+    @on(Input.Changed)
+    def show_invalid_reasons(self, event: Input.Changed):
+        if not event.validation_result.is_valid:
+            self.notify(str(event.validation_result.failure_descriptions[0]), title="Not Valid", severity="error", timeout=2)
 
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "cancel":
             self.app.pop_screen()
+        elif event.button.id == "ok":
+            inputs = self.query(Input)
+            all_valid = True
+            values = []
+            for inp in inputs:
+                all_valid = inp.is_valid
+                values.append(inp.value)
+
+            if not all_valid:
+                self.notify("Fix Problems With Input", title="Error", severity="error")
+                return
+            
+            re = add_group(values[0])
+            if re[0] == -1:
+                self.notify(re[1], severity="error")
+            else:
+                self.app.notify("Group Added Successfully!", title="Success")
+                self.dismiss("refresh")
+                return
 
 if __name__ == "__main__":
     UserManagement().run()
