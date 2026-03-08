@@ -136,6 +136,28 @@ class AddUserScreen(ModalScreen):
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "cancel":
             self.app.pop_screen()
+        elif event.button.id == "ok":
+            inputs = self.query(Input)
+            all_valid = True
+            values = []
+            for inp in inputs:
+                all_valid = inp.is_valid
+                values.append(inp.value)
+
+            if not all_valid:
+                self.notify("Fix Problems With Input", title="Error", severity="error")
+                return
+
+            if values[-1] != values[-2]:
+                self.notify("Password Doesn't Match", title="Error", severity="error")
+                return
+            
+            # Call the make user function
+            add_user(values[0], values[1], values[2])
+            self.app.notify("User Added Successfully!", title="Success")
+            self.app.pop_screen()
+            return
+            
 
 class AddGroupScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
