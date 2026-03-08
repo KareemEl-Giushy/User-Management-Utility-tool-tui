@@ -1,7 +1,7 @@
 from textual.validation import Validator
 
 
-class InputeValidator(Validator):
+class InputValidator(Validator):
     def __init__(self, less_count=3, failure_description = None):
         super().__init__(failure_description)
         self.less_count = less_count

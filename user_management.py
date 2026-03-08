@@ -8,7 +8,7 @@ from textual.containers import Horizontal, VerticalGroup
 from textual.screen import ModalScreen
 
 from utils import *
-from validators import InputeValidator
+from validators import InputValidator
 
 class UserManagement(App):
 
@@ -163,16 +163,16 @@ class AddUserScreen(ModalScreen):
     def compose(self):
         yield Label("Add User:", classes="buttons-group")
         yield Input(placeholder="Username", validators=[
-            InputeValidator()
+            InputValidator()
         ], id="username")
         yield Input(placeholder="Full Name", validators=[
-            InputeValidator()
+            InputValidator()
         ], id="full-name")
         yield Input(placeholder="Password", id="pass", validators=[
-            InputeValidator(less_count=6)
+            InputValidator(less_count=6)
         ], password=True)
         yield Input(placeholder="Confirm Password",id="confirm-pass", validators=[
-            InputeValidator(less_count=6)
+            InputValidator(less_count=6)
         ], password=True)
         with Horizontal(classes="buttons-group"):
             yield Button("Ok!", id="ok", variant="success")
@@ -216,7 +216,7 @@ class AddGroupScreen(ModalScreen):
     def compose(self):
         yield Label("Add Group:", classes="buttons-group")
         yield Input(placeholder="Group Name", validators=[
-            InputeValidator()
+            InputValidator()
         ], id="groupname")
         with Horizontal(classes="buttons-group"):
             yield Button("Ok!", id="ok", variant="success")
