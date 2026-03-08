@@ -116,14 +116,9 @@ def modify_group(option,value):
     else:
         print(f" Error: {error}")
 
-def modify_user(option,value):
-    username = input("Enter the username: ").strip()
-    cmd = ["sudo", "usermod", "-" + option]
-    if value:
-        cmd.append(value)
-    cmd.append(username)
-    success, error = run_command(cmd)
+def modify_user(username, fullname):
+    success, error = run_command(["sudo", "usermod", "-c", f"{fullname}", username])
     if success:
-        print(f" Successfully updated {username} with option -{option}.")
+        return (0, f" Successfully updated full name")
     else:
-        print(f" Error: {error}")
+        return (-1, error)

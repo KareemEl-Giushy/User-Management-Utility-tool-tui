@@ -10,7 +10,7 @@ class InputValidator(Validator):
         if self.empty(value):
             return self.failure("This Field Can't Be Empty!")
         elif self.lessThan(value):
-            return self.failure("Field Can't Be Less Than 3 Characters!")
+            return self.failure(f"Field Can't Be Less Than {self.less_count} Characters!")
         else:
             return self.success()
 

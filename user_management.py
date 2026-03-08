@@ -1,3 +1,5 @@
+from typing import Literal
+
 from rich.text import Text
 
 from textual.app import App
@@ -22,7 +24,6 @@ class UserManagement(App):
         Binding(key="delete", action="delete_user", description="Delete a User"),
         Binding(key="ctrl+d", action="delete_group", description="Delete a Group"),
         Binding(key="l", action="lock_user", description="Un/Lock User"),
-        Binding(key="p", action="change_password", description="Change password"),
         Binding(key="i", action="", description="Info"),
         Binding(key="j", action="down", description="Scroll down", show=False),
         Binding(key="q", action="quit", description="Quit the app"),
@@ -118,9 +119,6 @@ class UserManagement(App):
     def action_lock_user(self):
         pass
 
-    def action_change_password(self):
-        pass
-
     @on(Button.Pressed,'#add-user')
     def add_user(self):
         self.push_screen(AddUserScreen(), callback=self.populate_tables)
@@ -132,8 +130,8 @@ class UserManagement(App):
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         row = event.row_key
         data = event.control.get_row(row)
-        fields = event.control.get_row_at(0)
-        self.push_screen(ModifyEntryScreen(fields, data))  # push new screen
+        t = "group" if event.control.id == "groups" else "user"
+        self.push_screen(ModifyEntryScreen(data, type=t), callback=self.populate_tables)  # push new screen
 
     def on_key_pressed(self, event: events.Key):
         pass
@@ -142,21 +140,84 @@ class UserManagement(App):
 
 class ModifyEntryScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
-    def __init__(self, fields, data):
+    def __init__(self, data: list, type: Literal['user', 'group']):
         super().__init__()
-        self.fields = fields
         self.data = data
+        self.type = type
 
     def compose(self):
-        yield Label("Edit Row")
-        with Horizontal():
+        yield Label("Edit Entry:", classes="buttons-group")
+        if self.type == "user":
+            yield Label("Comment (Full Name):")
+            yield Input(placeholder="Full Name", value=str(self.data[2]), validators=[
+                InputValidator()
+            ])
+            yield Label("Password:")
+            yield Input(placeholder="Password", validators=[
+                InputValidator(less_count=6)
+            ], password=True)
+            yield Input(placeholder="Confirm Password", validators=[
+                InputValidator(less_count=6)
+            ], password=True)
+        else:
+            yield Label("Group Name:")
+            yield Input(placeholder="Group Name:", value=str(self.data[0]), validators=[
+                InputValidator(less_count=6)
+            ])
+            yield Label("Group Users:")
+            yield Input(placeholder="Users in Group", value=str(self.data[2]))
+        with Horizontal(classes="buttons-group"):
             yield Button("Ok!", id="ok", variant="success")
             yield Button("Delete", id="delete", variant="error")
             yield Button("Cancel", id="cancel", variant="warning")
 
+    @on(Input.Changed)
+    def show_invalid_reasons(self, event: Input.Changed):
+        if not event.validation_result.is_valid:
+            self.notify(str(event.validation_result.failure_descriptions[0]), title="Not Valid", severity="error", timeout=2)
+
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "cancel":
             self.app.pop_screen()
+        elif event.button.id == "ok":
+            inputs = self.query(Input)
+            all_valid = True
+            values = []
+            for inp in inputs:
+                all_valid = inp.is_valid
+                values.append(inp.value)
+
+            if not all_valid:
+                self.notify("Fix Problems With Input", title="Error", severity="error")
+                return
+
+            if values[-1] != values[-2]:
+                self.notify("Password Doesn't Match", title="Error", severity="error")
+                return
+            
+
+            if self.type == "user":
+                self.user_handle(str(self.data[0]), values[0], values[1])
+            else:
+                self.group_handle()
+
+    def user_handle(self, username, fullname, password):
+        re = modify_user(username, fullname)
+        if re[0] == -1:
+            self.notify(re[1], severity="error")
+            return
+
+        re = change_user_password(username, password)
+        # TODO: If This fails the above change would have taken effect. (bug)
+        if re[0] == -1:
+            self.notify(re[1], severity="error")
+            return
+
+        self.app.notify("Modified Successfully Successfully!", title="Success")
+        self.dismiss("refresh")
+
+    def group_handle(self):
+        pass
 
 class AddUserScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
