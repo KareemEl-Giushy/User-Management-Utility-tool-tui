@@ -99,22 +99,25 @@ def add_group(groupname):
 
 
 def delete_group(groupname):
-        success, error = run_command(["sudo", "groupdel", groupname])
-        if success:
-            return (0, groupname)
-        else:
-            return (-1, error)
-
-
-
-def modify_group(option,value):
-    groupname = input("Enter the group name: ").strip()
-    success, error = run_command(["sudo", "groupmod", "-"+option , value , groupname])
-    
+    success, error = run_command(["sudo", "groupdel", groupname])
     if success:
-        print(f" Successfully updated {groupname} with option -{option}.")
+        return (0, groupname)
     else:
-        print(f" Error: {error}")
+        return (-1, error)
+
+def add_users_to_group(groupname, users):
+    success, error = run_command(["sudo", "groupmod", "-U", f"{users}" , groupname])
+    if success:
+        return (0, groupname)
+    else:
+        return (-1, error)
+
+def modify_group_name(groupname, newname):
+    success, error = run_command(["sudo", "groupmod", "-n", f"{newname}" ,groupname])
+    if success:
+        return (0, groupname)
+    else:
+        return (-1, error)
 
 def modify_user(username, fullname):
     success, error = run_command(["sudo", "usermod", "-c", f"{fullname}", username])

@@ -161,11 +161,11 @@ class ModifyEntryScreen(ModalScreen):
             ], password=True)
         else:
             yield Label("Group Name:")
-            yield Input(placeholder="Group Name:", value=str(self.data[0]), validators=[
-                InputValidator(less_count=6)
+            yield Input(placeholder="Group Name", value=str(self.data[0]), validators=[
+                InputValidator()
             ])
             yield Label("Group Users:")
-            yield Input(placeholder="Users in Group", value=str(self.data[2]))
+            # yield Input(placeholder="Users in Group")
         with Horizontal(classes="buttons-group"):
             yield Button("Ok!", id="ok", variant="success")
             yield Button("Delete", id="delete", variant="error")
@@ -191,7 +191,7 @@ class ModifyEntryScreen(ModalScreen):
                 self.notify("Fix Problems With Input", title="Error", severity="error")
                 return
 
-            if values[-1] != values[-2]:
+            if self.type == "user" and values[-1] != values[-2]:
                 self.notify("Password Doesn't Match", title="Error", severity="error")
                 return
             
@@ -199,7 +199,7 @@ class ModifyEntryScreen(ModalScreen):
             if self.type == "user":
                 self.user_handle(str(self.data[0]), values[0], values[1])
             else:
-                self.group_handle()
+                self.group_handle(str(self.data[0]), values[0], values[1])
 
     def user_handle(self, username, fullname, password):
         re = modify_user(username, fullname)
@@ -216,8 +216,19 @@ class ModifyEntryScreen(ModalScreen):
         self.app.notify("Modified Successfully Successfully!", title="Success")
         self.dismiss("refresh")
 
-    def group_handle(self):
-        pass
+    def group_handle(self, groupname, newname, users):
+        re = modify_group_name(groupname, newname)
+        if re[0] == -1:
+            self.notify(re[1], severity="error")
+            return
+
+        re = add_users_to_group(groupname, users)
+        if re[0] == -1:
+            self.notify(re[1], severity="error")
+            return
+
+        self.app.notify("Modified Successfully Successfully!", title="Success")
+        self.dismiss("refresh")
 
 class AddUserScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
